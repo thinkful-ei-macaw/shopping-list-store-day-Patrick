@@ -1,10 +1,10 @@
 /* eslint-disable strict */
 const store = {
   items: [
-    { id: cuid(), name: 'apples', checked: false },
-    { id: cuid(), name: 'oranges', checked: false },
-    { id: cuid(), name: 'milk', checked: true },
-    { id: cuid(), name: 'bread', checked: false }
+    { id: cuid(), name: 'apples', checked: false, editing: false},
+    { id: cuid(), name: 'oranges', checked: false, editing: false},
+    { id: cuid(), name: 'milk', checked: true, editing: false},
+    { id: cuid(), name: 'bread', checked: false, editing: false}
   ],
   hideCheckedItems: false
 };
@@ -19,7 +19,10 @@ const generateItemElement = function (item) {
 
   return `
     <li class='js-item-element' data-item-id='${item.id}'>
-      <span class="edit">${itemTitle}</span>
+      ${item.editing?   `<form class="editForm">
+      <input class="inputNew"></input>
+      <button class="editSubmit">Save</button>
+    </form>`:`<span class="edit">${itemTitle}</span>`}
       <div class='shopping-item-controls'>
         <button class='shopping-item-toggle js-item-toggle'>
           <span class='button-label'>check</span>
@@ -77,6 +80,7 @@ const handleNewItemSubmit = function () {
     $('.js-shopping-list-entry').val('');
     addItemToShoppingList(newItemName);
     render();
+    submitEditedItem();
   });
 };
 
@@ -149,23 +153,30 @@ const handleToggleFilterClick = function () {
   });
 };
 
-const editListItem = function (currentTarget) {
+const editListItem = function (id) {
   console.log('editing...');
-
-  $(currentTarget).closest('li').find('.edit').html(
-    `<form class="editForm">
-      <input class="inputNew"></input>
-      <button class="editSubmit">Save</button>
-    </form>`);
-
-  
+  const index = store.items.findIndex(item => item.id === id);
+  store.items[index].editing = true;
 };
 
 const handleEditItemClicked = function () {
   $('.js-shopping-list').on('click', '.js-item-edit', event => {
     const id = getItemIdFromElement(event.currentTarget);
     console.log(id);
-    editListItem(event.currentTarget);
+    editListItem(id);
+    render();
+    submitEditedItem();
+  });
+};
+
+const submitEditedItem = function () {
+  $('.editForm').unbind('submit');
+  $('.editForm').submit( event => {
+    event.preventDefault();
+    const newInput = $(event.currentTarget).closest('li').find('.inputNew').val();
+    const id = getItemIdFromElement(event.currentTarget);
+    const index = store.items.findIndex(item => item.id === id);
+    store.items[index].name = newInput;
     render();
   });
 };
@@ -186,6 +197,7 @@ const handleShoppingList = function () {
   handleDeleteItemClicked();
   handleToggleFilterClick();
   handleEditItemClicked();
+  submitEditedItem();
 };
 
 // when the page loads, call `handleShoppingList`
