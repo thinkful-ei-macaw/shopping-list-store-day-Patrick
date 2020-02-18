@@ -156,7 +156,11 @@ const handleToggleFilterClick = function () {
 const editListItem = function (id) {
   console.log('editing...');
   const index = store.items.findIndex(item => item.id === id);
-  store.items[index].editing = true;
+  if (store.items[index].editing === false) {
+    store.items[index].editing = true;
+  } else if (store.items[index].editing === true) {
+    store.items[index].editing = false;
+  }
 };
 
 const handleEditItemClicked = function () {
@@ -170,13 +174,13 @@ const handleEditItemClicked = function () {
 };
 
 const submitEditedItem = function () {
-  $('.editForm').unbind('submit');
-  $('.editForm').submit( event => {
+  $('.js-shopping-list').on('submit', '.editForm', event => {
     event.preventDefault();
     const newInput = $(event.currentTarget).closest('li').find('.inputNew').val();
     const id = getItemIdFromElement(event.currentTarget);
     const index = store.items.findIndex(item => item.id === id);
     store.items[index].name = newInput;
+    store.items[index].editing = false;
     render();
   });
 };
